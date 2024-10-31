@@ -1,8 +1,9 @@
 ---
 title: "STAT 331 Portfolio"
-author: "Your Name Goes Here"
+author: "Oliver Lane"
 format: 
-  html: 
+  html:
+    theme: lux 
     self-contained: true
 layout: margin-left
 editor: visual
@@ -11,7 +12,7 @@ execute:
   echo: true
 ---
 
-[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an __.
+[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an \_\_.
 
 [**Learning Objective Evidence:**]{.underline} In the code chunks below, provide code from Lab or Challenge assignments where you believe you have demonstrated proficiency with the specified learning target. Be sure to specify **where** the code came from (e.g., Lab 4 Question 2).
 
@@ -21,29 +22,49 @@ execute:
 
 -   `csv`
 
+Lab 2 Question 1
+
 ```{r}
 #| label: wd-1-csv
-
+surveys <- read_csv(here::here("data", "surveys.csv"))
 ```
 
 -   `xlsx`
 
+PA 4 Question 1
+
 ```{r}
 #| label: wd-1-xlsx
-
+military <- read_xlsx(here::here("data", 
+                                 "gov_spending_per_capita.xlsx"), 
+                      sheet = "Share of Govt. spending", 
+                      skip  = 7, 
+                      n_max = 191)
 ```
 
 -   `txt`
 
+Check-in 2.3
+
 ```{r}
 #| label: wd-1-txt
-
+ages_mystery <- read_delim(here::here("Week 2","Check-ins","Ages_Data",
+                                      "ages_mystery.txt"), delim = "|")
 ```
 
 **WD-2: I can select necessary columns from a dataset.**
 
+Lab 3 Question 5
+
 ```{r}
 #| label: wd-2
+
+teacher_evals_clean <- teacher_evals |>
+  rename(sex = gender) |>
+  filter(no_participants >= 10) |>
+  mutate(teacher_id = as.character(teacher_id)) |>
+  select(course_id, teacher_id, question_no, no_participants, resp_share,
+         SET_score_avg, percent_failed_cur, academic_degree, seniority, sex)
 
 ```
 
@@ -51,15 +72,32 @@ execute:
 
 -   numeric
 
+Lab 3 Question 5
+
 ```{r}
 #| label: wd-3-numeric
+
+teacher_evals_clean <- teacher_evals |>
+  rename(sex = gender) |>
+  filter(no_participants >= 10) |>
+  mutate(teacher_id = as.character(teacher_id)) |>
+  select(course_id, teacher_id, question_no, no_participants, resp_share, SET_score_avg,
+         percent_failed_cur, academic_degree, seniority, sex)
 
 ```
 
 -   character -- specifically a string (example must use functions from **stringr**)
 
+Lab 5
+
 ```{r}
 #| label: wd-3-string
+
+person |>
+  filter(str_detect(name, "Annabel"),
+         address_street_name == "Franklin Ave") |>
+  inner_join(interview, by = join_by(id == person_id)) |>
+  pull(transcript)
 
 ```
 
@@ -68,12 +106,20 @@ execute:
 ```{r}
 #| label: wd-3-factor
 
+
+
 ```
 
 -   date (example must use functions from **lubridate**)
 
+Lab 5
+
 ```{r}
 #| label: wd-3-date
+
+crime_scene_report |>
+  filter(ymd(date) == '2018-01-15', type == 'murder', city == 'SQL City') |>
+  pull(description)
 
 ```
 
@@ -83,6 +129,8 @@ execute:
 
 ```{r}
 #| label: wd-4-numeric
+
+
 
 ```
 
@@ -95,8 +143,24 @@ execute:
 
 -   factor (example must use functions from **forcats**)
 
+Lab 4 Question 3
+
 ```{r}
 #| label: wd-4-factor
+
+ca_childcare <- ca_childcare |> 
+  mutate(county_name = str_remove(county_name, " County"),
+         region = fct_collapse(county_name,
+                               "Superior California" = c("Butte", "Colusa", "El Dorado", "Glenn", "Lassen", "Modoc", "Nevada", "Placer", "Plumas", "Sacramento", "Shasta", "Sierra", "Siskiyou", "Sutter", "Tehama", "Yolo", "Yuba"),
+                               "North Coast" = c("Del Norte", "Humboldt", "Lake", "Mendocino", "Napa", "Sonoma", "Trinity"),
+                               "San Francisco Bay Area" = c("Alameda", "Contra Costa", "Marin", "San Francisco", "San Mateo", "Santa Clara", "Solano"),
+                               "Northern San Joaquin Valley" = c("Alpine", "Amador", "Calaveras", "Madera", "Mariposa", "Merced", "Mono", "San Joaquin", "Stanislaus", "Tuolumne"),
+                               "Central Coast" = c("Monterey", "San Benito", "San Luis Obispo", "Santa Barbara", "Santa Cruz", "Ventura"),
+                               "Southern San Joaquin Valley" = c("Fresno", "Inyo", "Kern", "Kings", "Tulare"),
+                               "Inland Empire" = c("Riverside", "San Bernardino"),
+                               "Los Angeles County" = c("Los Angeles"),
+                               "Orange County" = c("Orange"),
+                               "San Diego-Imperial" = c("San Diego", "Imperial")))
 
 ```
 
@@ -125,8 +189,16 @@ execute:
 
 -   `inner_join()`
 
+Lab 5
+
 ```{r}
 #| label: wd-5-inner
+
+person |>
+  filter(address_street_name == "Northwestern Dr") |>
+  filter(address_number == max(address_number)) |>
+  inner_join(interview, by = join_by(id == person_id)) |>
+  pull(transcript)
 
 ```
 
@@ -157,15 +229,62 @@ execute:
 
 -   `pivot_longer()`
 
+Lab 4 Question 6
+
 ```{r}
 #| label: wd-7-long
+
+ca_childcare |>
+  filter(!is.na(mc_infant),
+         !is.na(mc_toddler),
+         !is.na(mc_preschool)) |>
+  pivot_longer(cols = c(mc_infant,
+                        mc_toddler,
+                        mc_preschool),
+               names_to = "age_class",
+               values_to = "weekly_price") |>
+  mutate(age_class = factor(age_class,
+                            levels = c("mc_infant", "mc_toddler", "mc_preschool"),
+                            labels = c("Infant", "Toddler", "Preschool")),
+         region = factor(region)) |>
+  ggplot(mapping = aes(x = study_year,
+                       y = weekly_price,
+                       color = fct_reorder2(.f = region,
+                                            .x = study_year,
+                                            .y = weekly_price
+                       ))) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess") +
+  facet_wrap(~age_class) +
+  scale_x_continuous(breaks = seq(2008,
+                                  2018,
+                                  by = 2)) +
+  scale_y_continuous(limits = c(100, 500)) +
+  theme(aspect.ratio = 1,
+        axis.text = element_text(size = 6),
+  ) +
+  labs(x = "Study Year",
+       y = "",
+       subtitle = "Weekly Median Price for Center-Based Childcare ($)",
+       color = "California Region")
 
 ```
 
 -   `pivot_wider()`
 
+Lab 4 Question 4
+
 ```{r}
 #| label: wd-7-wide
+
+ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year,
+              values_from = median_income,
+              names_prefix = "median_income_") |>
+  arrange(desc(median_income_2018))
 
 ```
 
@@ -175,26 +294,87 @@ execute:
 
 I've done this in the following provided assignments:
 
+Lab 2
+
 **R-2: I can write well documented and tidy code.**
 
 -   Example of **ggplot2** plotting
 
+Lab 4 Question 6
+
 ```{r}
 #| label: r-2-1
+
+ca_childcare |>
+  filter(!is.na(mc_infant),
+         !is.na(mc_toddler),
+         !is.na(mc_preschool)) |>
+  pivot_longer(cols = c(mc_infant,
+                        mc_toddler,
+                        mc_preschool),
+               names_to = "age_class",
+               values_to = "weekly_price") |>
+  mutate(age_class = factor(age_class,
+                            levels = c("mc_infant", "mc_toddler", "mc_preschool"),
+                            labels = c("Infant", "Toddler", "Preschool")),
+         region = factor(region)) |>
+  ggplot(mapping = aes(x = study_year,
+                       y = weekly_price,
+                       color = fct_reorder2(.f = region,
+                                            .x = study_year,
+                                            .y = weekly_price
+                       ))) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess") +
+  facet_wrap(~age_class) +
+  scale_x_continuous(breaks = seq(2008,
+                                  2018,
+                                  by = 2)) +
+  scale_y_continuous(limits = c(100, 500)) +
+  theme(aspect.ratio = 1,
+        axis.text = element_text(size = 6),
+  ) +
+  labs(x = "Study Year",
+       y = "",
+       subtitle = "Weekly Median Price for Center-Based Childcare ($)",
+       color = "California Region")
+
 
 ```
 
 -   Example of **dplyr** pipeline
 
+Lab 3 Question 10
+
 ```{r}
 #| label: r-2-2
+
+teacher_evals_clean |>
+  group_by(teacher_id) |>
+  filter(question_no == 901) |>
+  summarise(avg = mean(SET_score_avg)) |>
+  filter(avg == max(avg) | avg == min(avg))
 
 ```
 
 -   Example of function formatting
 
+Lab 2 Question 8
+
 ```{r}
 #| label: r-2-3
+
+ggplot(data = surveys,
+       mapping = aes(x = species, y = weight, fill = genus)) +
+  geom_jitter(alpha = 0.1, color = "steelblue") + 
+  geom_boxplot(outliers = FALSE) +
+  labs(x = "Species of Rodent",
+       y = "",
+       title = "Distribution of Weight Within Rodent Species",
+       subtitle = "Weight of Rodent (grams)",
+       ) +
+  theme(axis.text.x = element_text(angle = 45)) +
+  scale_fill_brewer(palette = "Set2")
 
 ```
 
@@ -202,8 +382,14 @@ I've done this in the following provided assignments:
 
 -   Example -- any context
 
+Lab 5
+
 ```{r}
 #| label: r-3-example
+
+crime_scene_report |>
+  filter(ymd(date) == '2018-01-15', type == 'murder', city == 'SQL City') |>
+  pull(description)
 
 ```
 
@@ -220,29 +406,108 @@ I've done this in the following provided assignments:
 
 -   at least two numeric variables
 
+Lab 1 Question 6
+
 ```{r}
 #| label: dvs-1-num
+
+ggplot(data = ToothGrowth, 
+       mapping = aes(x = supp, y = len)) +
+  geom_boxplot() +
+  labs(x = "Supplement", y = "Length of Teeth (mm)")
+
+ToothGrowth |>
+  mutate(dose = as.factor(dose)) |>
+  ggplot(mapping = aes(x = dose, y = len)) +
+  geom_boxplot() +
+  labs(x = "Dose of Supplement (mg/day)", y = "Length of Teeth (mm)")
 
 ```
 
 -   at least one numeric variable and one categorical variable
 
+Challenge 2, Spicy
+
 ```{r}
 #| label: dvs-2-num-cat
+
+ggplot(data = surveys,
+       mapping = aes(x = weight, y = species, fill = genus)) +
+  geom_jitter(alpha = 0.1, color = "steelblue") +
+  geom_boxplot(outliers = FALSE) +
+  labs(x = "Weight of Rodent (grams)",
+       y = "",
+       title = "Distribution of Weight Within Rodent Species",
+       subtitle = "Species of Rodent",
+       ) +
+# ref 4
+  scale_fill_brewer(palette = "Pastel2")
 
 ```
 
 -   at least two categorical variables
 
+Challenge 3, Question 2
+
 ```{r}
 #| label: dvs-2-cat
+
+ggplot(data = teacher_evals_compare,
+       mapping = aes(x = sen_level,
+                     fill = SET_level)
+       ) +
+  geom_bar( position = "stack") +
+  scale_fill_manual(
+    values = c("steelblue", "orange3")
+  ) +
+  labs(
+    x = "Seniority of Instructor",
+    y = "",
+    subtitle = "Number of Sections"
+  )
 
 ```
 
 -   dates (timeseries plot)
 
+Lab 4 Question 6
+
 ```{r}
 #| label: dvs-2-date
+
+ca_childcare |>
+  filter(!is.na(mc_infant),
+         !is.na(mc_toddler),
+         !is.na(mc_preschool)) |>
+  pivot_longer(cols = c(mc_infant,
+                        mc_toddler,
+                        mc_preschool),
+               names_to = "age_class",
+               values_to = "weekly_price") |>
+  mutate(age_class = factor(age_class,
+                            levels = c("mc_infant", "mc_toddler", "mc_preschool"),
+                            labels = c("Infant", "Toddler", "Preschool")),
+         region = factor(region)) |>
+  ggplot(mapping = aes(x = study_year,
+                       y = weekly_price,
+                       color = fct_reorder2(.f = region,
+                                            .x = study_year,
+                                            .y = weekly_price
+                       ))) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess") +
+  facet_wrap(~age_class) +
+  scale_x_continuous(breaks = seq(2008,
+                                  2018,
+                                  by = 2)) +
+  scale_y_continuous(limits = c(100, 500)) +
+  theme(aspect.ratio = 1,
+        axis.text = element_text(size = 6),
+  ) +
+  labs(x = "Study Year",
+       y = "",
+       subtitle = "Weekly Median Price for Center-Based Childcare ($)",
+       color = "California Region")
 
 ```
 
@@ -250,8 +515,22 @@ I've done this in the following provided assignments:
 
 -   I can ensure people don't tilt their head
 
+Challenge 2, Spicy
+
 ```{r}
 #| label: dvs-2-1
+
+ggplot(data = surveys,
+       mapping = aes(x = weight, y = species, fill = genus)) +
+  geom_jitter(alpha = 0.1, color = "steelblue") +
+  geom_boxplot(outliers = FALSE) +
+  labs(x = "Weight of Rodent (grams)",
+       y = "",
+       title = "Distribution of Weight Within Rodent Species",
+       subtitle = "Species of Rodent",
+       ) +
+# ref 4
+  scale_fill_brewer(palette = "Pastel2")
 
 ```
 
@@ -273,8 +552,22 @@ I've done this in the following provided assignments:
 
 -   I can use non-standard colors
 
+Challenge 2, Spicy
+
 ```{r}
 #| label: dvs-3-1
+
+ggplot(data = surveys,
+       mapping = aes(x = weight, y = species, fill = genus)) +
+  geom_jitter(alpha = 0.1, color = "steelblue") +
+  geom_boxplot(outliers = FALSE) +
+  labs(x = "Weight of Rodent (grams)",
+       y = "",
+       title = "Distribution of Weight Within Rodent Species",
+       subtitle = "Species of Rodent",
+       ) +
+# ref 4
+  scale_fill_brewer(palette = "Pastel2")
 
 ```
 
@@ -287,8 +580,44 @@ I've done this in the following provided assignments:
 
 -   I can be creative...
 
+Lab 4 Question 6
+
 ```{r}
 #| label: dvs-3-3
+
+ca_childcare |>
+  filter(!is.na(mc_infant),
+         !is.na(mc_toddler),
+         !is.na(mc_preschool)) |>
+  pivot_longer(cols = c(mc_infant,
+                        mc_toddler,
+                        mc_preschool),
+               names_to = "age_class",
+               values_to = "weekly_price") |>
+  mutate(age_class = factor(age_class,
+                            levels = c("mc_infant", "mc_toddler", "mc_preschool"),
+                            labels = c("Infant", "Toddler", "Preschool")),
+         region = factor(region)) |>
+  ggplot(mapping = aes(x = study_year,
+                       y = weekly_price,
+                       color = fct_reorder2(.f = region,
+                                            .x = study_year,
+                                            .y = weekly_price
+                       ))) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess") +
+  facet_wrap(~age_class) +
+  scale_x_continuous(breaks = seq(2008,
+                                  2018,
+                                  by = 2)) +
+  scale_y_continuous(limits = c(100, 500)) +
+  theme(aspect.ratio = 1,
+        axis.text = element_text(size = 6),
+  ) +
+  labs(x = "Study Year",
+       y = "",
+       subtitle = "Weekly Median Price for Center-Based Childcare ($)",
+       color = "California Region")
 
 ```
 
@@ -296,8 +625,16 @@ I've done this in the following provided assignments:
 
 -   Example using `summarize()`
 
+Lab 3 Question 10
+
 ```{r}
 #| label: dvs-4-summarize
+
+teacher_evals_clean |>
+  group_by(teacher_id) |>
+  filter(question_no == 901) |>
+  summarise(avg = mean(SET_score_avg)) |>
+  filter(avg == max(avg) | avg == min(avg))
 
 ```
 
@@ -328,8 +665,19 @@ I've done this in the following provided assignments:
 
 -   Example 1
 
+Lab 4 Question 4
+
 ```{r}
 #| label: dvs-6-1
+
+ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year,
+              values_from = median_income,
+              names_prefix = "median_income_") |>
+  arrange(desc(median_income_2018))
 
 ```
 
@@ -346,6 +694,8 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-7-1
+
+
 
 ```
 
@@ -431,8 +781,45 @@ I've done this in the following provided assignments:
 
 -   I can connect a data wrangling pipeline into a `ggplot()`
 
+Lab 4 Question 6
+
 ```{r}
 #| label: pe-4-2
+
+
+ca_childcare |>
+  filter(!is.na(mc_infant),
+         !is.na(mc_toddler),
+         !is.na(mc_preschool)) |>
+  pivot_longer(cols = c(mc_infant,
+                        mc_toddler,
+                        mc_preschool),
+               names_to = "age_class",
+               values_to = "weekly_price") |>
+  mutate(age_class = factor(age_class,
+                            levels = c("mc_infant", "mc_toddler", "mc_preschool"),
+                            labels = c("Infant", "Toddler", "Preschool")),
+         region = factor(region)) |>
+  ggplot(mapping = aes(x = study_year,
+                       y = weekly_price,
+                       color = fct_reorder2(.f = region,
+                                            .x = study_year,
+                                            .y = weekly_price
+                       ))) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess") +
+  facet_wrap(~age_class) +
+  scale_x_continuous(breaks = seq(2008,
+                                  2018,
+                                  by = 2)) +
+  scale_y_continuous(limits = c(100, 500)) +
+  theme(aspect.ratio = 1,
+        axis.text = element_text(size = 6),
+  ) +
+  labs(x = "Study Year",
+       y = "",
+       subtitle = "Weekly Median Price for Center-Based Childcare ($)",
+       color = "California Region")
 
 ```
 
