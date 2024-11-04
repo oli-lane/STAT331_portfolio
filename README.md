@@ -1,5 +1,3 @@
-# Template for STAT 331 Portfolio
+# STAT 331 Portfolio
 
-See instructions for creating your final portfolio
-[on the STAT 331 course webpage](https://atheobold.github.io/groupworthy-data-science/portfolio/portfolio-instructions.html). This repository provides you with a template
-for how your portfolio repository is expected to be organized. 
+Portfolio for STAT 331 demonstrating my growth in using R to conduct statistical analysis. Includes code chunks covering various learning targets for the class and personal reflections on how I've revised and extended my skills throughout the course.
