@@ -182,8 +182,15 @@ ca_childcare <- ca_childcare |>
 
 -   date (example must use functions from **lubridate**)
 
+Lab 5 (revised to add new column with date object)
+
 ```{r}
 #| label: wd-4-date
+
+crime_scene_report |>
+  mutate(date_object = ymd(date)) |>
+  filter(city == "SQL City", date_object == ymd(20180115), type == "murder") |>
+  pull(description)
 
 ```
 
