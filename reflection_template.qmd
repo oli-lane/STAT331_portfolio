@@ -12,7 +12,7 @@ execute:
   echo: true
 ---
 
-[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an \_\_.
+[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an **A**.
 
 [**Learning Objective Evidence:**]{.underline} In the code chunks below, provide code from Lab or Challenge assignments where you believe you have demonstrated proficiency with the specified learning target. Be sure to specify **where** the code came from (e.g., Lab 4 Question 2).
 
@@ -136,8 +136,24 @@ crime_scene_report |>
 
 -   character -- specifically a string (example must use functions from **stringr**)
 
+Lab 4 Question 3
+
 ```{r}
 #| label: wd-4-string
+
+ca_childcare <- ca_childcare |> 
+  mutate(county_name = str_remove(county_name, " County"),
+         region = fct_collapse(county_name,
+                               "Superior California" = c("Butte", "Colusa", "El Dorado", "Glenn", "Lassen", "Modoc", "Nevada", "Placer", "Plumas", "Sacramento", "Shasta", "Sierra", "Siskiyou", "Sutter", "Tehama", "Yolo", "Yuba"),
+                               "North Coast" = c("Del Norte", "Humboldt", "Lake", "Mendocino", "Napa", "Sonoma", "Trinity"),
+                               "San Francisco Bay Area" = c("Alameda", "Contra Costa", "Marin", "San Francisco", "San Mateo", "Santa Clara", "Solano"),
+                               "Northern San Joaquin Valley" = c("Alpine", "Amador", "Calaveras", "Madera", "Mariposa", "Merced", "Mono", "San Joaquin", "Stanislaus", "Tuolumne"),
+                               "Central Coast" = c("Monterey", "San Benito", "San Luis Obispo", "Santa Barbara", "Santa Cruz", "Ventura"),
+                               "Southern San Joaquin Valley" = c("Fresno", "Inyo", "Kern", "Kings", "Tulare"),
+                               "Inland Empire" = c("Riverside", "San Bernardino"),
+                               "Los Angeles County" = c("Los Angeles"),
+                               "Orange County" = c("Orange"),
+                               "San Diego-Imperial" = c("San Diego", "Imperial")))
 
 ```
 
@@ -536,15 +552,65 @@ ggplot(data = surveys,
 
 -   I can modify the text in my plot to be more readable
 
+Lab 2 Question 15
+
 ```{r}
 #| label: dvs-2-2
+
+ggplot(data = surveys,
+       mapping = aes(x = species, y = weight, fill = genus)) +
+  geom_jitter(alpha = 0.1, color = "steelblue") + 
+  geom_boxplot(outliers = FALSE) +
+  labs(x = "Species of Rodent",
+       y = "",
+       title = "Distribution of Weight Within Rodent Species",
+       subtitle = "Weight of Rodent (grams)",
+       ) +
+  theme(axis.text.x = element_text(angle = 45)) +
+  scale_fill_brewer(palette = "Set2")
 
 ```
 
 -   I can reorder my legend to align with the colors in my plot
 
+Lab 4 Question 6
+
 ```{r}
 #| label: dvs-2-3
+
+ca_childcare |>
+  filter(!is.na(mc_infant),
+         !is.na(mc_toddler),
+         !is.na(mc_preschool)) |>
+  pivot_longer(cols = c(mc_infant,
+                        mc_toddler,
+                        mc_preschool),
+               names_to = "age_class",
+               values_to = "weekly_price") |>
+  mutate(age_class = factor(age_class,
+                            levels = c("mc_infant", "mc_toddler", "mc_preschool"),
+                            labels = c("Infant", "Toddler", "Preschool")),
+         region = factor(region)) |>
+  ggplot(mapping = aes(x = study_year,
+                       y = weekly_price,
+                       color = fct_reorder2(.f = region,
+                                            .x = study_year,
+                                            .y = weekly_price
+                       ))) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess") +
+  facet_wrap(~age_class) +
+  scale_x_continuous(breaks = seq(2008,
+                                  2018,
+                                  by = 2)) +
+  scale_y_continuous(limits = c(100, 500)) +
+  theme(aspect.ratio = 1,
+        axis.text = element_text(size = 6),
+  ) +
+  labs(x = "Study Year",
+       y = "",
+       subtitle = "Weekly Median Price for Center-Based Childcare ($)",
+       color = "California Region")
 
 ```
 
@@ -683,8 +749,14 @@ ca_childcare |>
 
 -   Example 2
 
+Lab 3, Question 6
+
 ```{r}
 #| label: dvs-6-2
+
+teacher_evals_clean |>
+  summarise(instructors = n_distinct(teacher_id),
+            courses = n_distinct(course_id))
 
 ```
 
@@ -692,17 +764,33 @@ ca_childcare |>
 
 -   Example 1
 
+Lab 3 Question 12
+
 ```{r}
 #| label: dvs-7-1
 
-
+teacher_evals_clean |>
+  filter(academic_degree %in% c("dr", "prof"),
+         sex == "female") |>
+  group_by(teacher_id) |>
+  summarise(avg_resp = mean(resp_share)) |>
+  filter(avg_resp == max(avg_resp) | avg_resp == min(avg_resp))
 
 ```
 
 -   Example 2
 
+Lab 4 Question 5
+
 ```{r}
 #| label: dvs-7-2
+
+ca_childcare |>
+  filter(study_year == 2018) |>
+  group_by(region) |>
+  summarise(median_mc_infant = median(mc_infant, na.rm = TRUE)) |>
+  slice_min(order_by = median_mc_infant,
+            n = 1)
 
 ```
 
@@ -712,8 +800,20 @@ ca_childcare |>
 
 -   using a single function call with multiple inputs (rather than multiple function calls)
 
+Lab 5
+
 ```{r}
 #| label: pe-1-one-call
+
+get_fit_now_member |>
+  filter(membership_status == "gold",
+         str_detect(id, "^48Z")) |>
+  inner_join(get_fit_now_check_in, join_by(id == membership_id)) |>
+  filter(check_in_date == '20180109') |>
+  inner_join(person, join_by(person_id == id, name)) |>
+  inner_join(drivers_license, by = join_by(license_id == id)) |>
+  filter(str_detect(plate_number, "H42W")) |>
+  select(person_id, name)
 
 ```
 
@@ -774,8 +874,14 @@ ca_childcare |>
 
 -   I can use functions which are not superseded or deprecated
 
+Lab 3 Question 7
+
 ```{r}
 #| label: pe-4-1
+
+teacher_evals_clean |>
+  filter(if_any(.cols = everything(),
+                .fns = ~ is.na(.x)))
 
 ```
 
@@ -829,8 +935,13 @@ ca_childcare |>
 
 -   Example 1
 
+Lab 4 Question 8
+
 ```{r}
 #| label: dsm-1-1
+
+reg_mod1 <- lm(data = ca_childcare, mc_infant ~ mhi_2018)
+summary(reg_mod1)
 
 ```
 
@@ -845,15 +956,28 @@ ca_childcare |>
 
 -   Example 1
 
+Challenge 3 Question 3
+
 ```{r}
 #| label: dsm-2-1
+
+chisq.test(
+  x = teacher_evals_compare$SET_level,
+  y = teacher_evals_compare$sen_level
+)
 
 ```
 
 -   Example 2
 
+Lab 2 Question 17
+
 ```{r}
 #| label: dsm-2-2
+
+species_mod <- aov(weight ~ species, data = surveys)
+
+summary(species_mod)
 
 ```
 
@@ -861,14 +985,24 @@ ca_childcare |>
 
 <!-- How did you revise your thinking throughout the course? How did you revise your thinking on the code examples you have provided in your portfolio? -->
 
+I revised my thinking by taking careful note of the feedback I received and resubmitting the questions where I had demonstrated a lack of full understanding (as opposed to forgetting a space or newline). For example, in lab 3 I used unnecessary intermediate variables for the min and max values towards the end, and revised those to use a single pipeline. I then applied this change in my future work, and have made an intentional effort not to use any intermediate variables since. In this way, I feel my code quality has steadily increased throughout the assignments, as shown in the code I've provided in the portfolio. 
+
 <!-- For the revisions included in your Portfolio, to help me understand the nature of your revisions, please denote somehow the feedback I provided you (e.g., boldface, italics, colored text) before your revisions. -->
 
 ## Extending My Thinking
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
+I've extended my thinking by taking on the challenge activities, and consistently aiming for above just the bare minimum (not just picking the easiest challenge available). I used code chunks from these challenges for my portfolio, because I feel that the times I challenged myself resulted in better and more sophisticated code than the code in the labs and practice activities. 
+
 ## Peer Support & Collaboration
 
 <!-- Include an image or a description of feedback you gave that you are proud of (either in a peer review or in Discord). -->
 
+Here is some feedback I gave a classmate on Lab 5 for their code efficiency that I am proud of:
+
+Some suggestions I have would be to use stringr functions like str_detect to find Annabel Miller instead of printing out all of the people and finding her manually. Also, although the right, left, and full joins work, the inner joins might be more suitable for this use case and filter out more of the unwanted data (rows with NA values in last step). Lastly, for join conditions like by = join_by(person_id == person_id), you should just be able to do by = "person_id" which reads a little easier. Overall nice work! Looks like you were able to get hte right answer pretty efficiently.
+
 <!-- Include a description of how you grew as a collaborator through the weekly pair programming activities.   -->
+
+During the weekly pair programming activities I improved on my ability to make sure both me and my partner understood each question and solution that we worked on. Because we switched back and forth between coding and developing, even if my partner or I had previously vocalized that a concept made sense, it was always very clear when we had an incomplete understanding. The pair programming activities bettered my ability to gauge my partners level of understanding, and also made it clear to me how important it is to only move on once both me and my partner fully understand what's going on. Additionally, having to articulate my thought processes without demonstrating or showing what I meant has forced me to improve the clarity of my explanations and be more patient.
