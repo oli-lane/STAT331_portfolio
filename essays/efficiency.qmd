@@ -16,4 +16,13 @@ As we’ve said in the class efficiency is a pivotal component of statistical co
 
 -   Where did you encounter efficiency, and what were some [“a-ha” moments](https://www.merriam-webster.com/dictionary/aha%20moment) you had about efficiency? (For the latter, tie each a-ha moment to an artifact in the portfolio.)
 
-Efficiency is all about doing more with less. In statistical computing this means writing code that can be reused, and which uses the right tools for the problem (stringr functions for strings, lubridate functions for dates, etc). This allows for less code that is more readable and runs faster (map functions for example can run in parallel while iterative loops cannot). Efficient code is also easier to debug, maintain and reuse, which is very important as inputs/desired outputs can change. An a-ha moment I had about efficiency in this class was using if_any() like I did in pe-4-1 from Lab 3 Question 7. I could have gotten the same output without if_any() by using is.na on every column, but using if_any() let me specify all columns (resistant to changes in names, more/less columns), only write the function I wanted to use once, and is also much more intuitive to read than if I had written out the function for each column.
+Efficiency is all about doing more with less. In statistical computing this means writing code that
+can be reused, and which uses the right tools for the problem (stringr functions for strings,
+lubridate functions for dates, etc). This allows for less code that is more readable and runs faster
+(map functions for example can run in parallel while iterative loops cannot). Efficient code is also
+easier to debug, maintain and reuse, which is very important as inputs/desired outputs can change. An
+a-ha moment I had about efficiency in this class was using if_any() like I did in pe-4-1 from Lab 3
+Question 7. I could have gotten the same output without if_any() by using is.na on every column, but
+using if_any() let me specify all columns (resistant to changes in names, more/less columns), only
+write the function I wanted to use once, and is also much more intuitive to read than if I had
+written out the function for each column.
