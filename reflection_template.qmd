@@ -103,10 +103,17 @@ person |>
 
 -   factor
 
+Lab 4 Question 2 (Revised to convert state_abbreviation to a factor before filtering as it was originally a string. This is appropriate because
+state abbreviations are categorical data and there are only 50 possible values so we can create levels for each, whereas strings can be anything)
+
 ```{r}
 #| label: wd-3-factor
 
-
+ca_childcare <- counties |>
+  mutate(state_abbreviation = as.factor(state_abbreviation)) |>
+  filter(state_abbreviation == "CA") |>
+  inner_join(childcare_costs,
+             by = "county_fips_code")
 
 ```
 
@@ -310,15 +317,54 @@ person |>
 
 -   `semi_join()`
 
+Lab 3 Question 12 (Revised to filter for instructors by semi-joining with instructors with doctorate or professor degrees, which will keep them and filter out instructors with masters degrees or no degree)
+
 ```{r}
 #| label: wd-6-semi
+
+library(knitr)
+library(kableExtra)
+
+included_teachers <- teacher_evals_clean |>
+  filter(academic_degree %in% c("dr", "prof")) |>
+  select(teacher_id)
+
+
+teacher_evals_clean |>
+  semi_join(included_teachers, by = "teacher_id") |>
+  filter(sex == "female") |>
+  group_by(teacher_id) |>
+  summarise(avg_resp = mean(resp_share)) |>
+  filter(avg_resp == max(avg_resp) | avg_resp == min(avg_resp)) |>
+  kable() |>
+  kable_styling()
 
 ```
 
 -   `anti_join()`
 
+Lab 3 Question 12 (Revised to filter for instructors with doctorate or professor degree by filtering out instructors with masters or no degree using an anti_join())
+
 ```{r}
 #| label: wd-6-anti
+
+library(knitr)
+library(kableExtra)
+
+excluded_teachers <- teacher_evals_clean |>
+  filter(academic_degree %in% c("ma", "no_dgr")) |>
+  select(teacher_id)
+
+
+teacher_evals_clean |>
+  anti_join(excluded_teachers, by = "teacher_id") |>
+  filter(sex == "female") |>
+  group_by(teacher_id) |>
+  summarise(avg_resp = mean(resp_share)) |>
+  filter(avg_resp == max(avg_resp) | avg_resp == min(avg_resp)) |>
+  kable() |>
+  kable_styling()
+
 
 ```
 
@@ -1080,7 +1126,7 @@ get_transcript <- function(df, keep_na) {
 
 -   Function that operates on data frames
 
-Lab 3 Questions 10-12 (Questions 10, 11, and 12 all involve filtering to find instructors with the highest and lowest means for a specific variable, ex: % students failing in the current semester across all courses. I revised to abstract this duplicated logic into a function called filter_highest_lowest. This function makes it easy to analyze the highest and lowest performance of any group of instructors across any quantitative variable in the dataset)
+Lab 3 Questions 10-12 (Questions 10, 11, and 12 all involve filtering to find instructors with the highest and lowest means for a specific variable, ex: % students failing in the current semester across all courses. I revised to abstract this duplicated logic into a function called filter_highest_lowest. This function makes it easy to analyze the highest and lowest performance of any group of instructors across any quantitative variable in the dataset, and can be directly included in transformations without intermediate variables since a dataframe is the first argument to the function)
 
 ```{r}
 #| label: pe-2-2
@@ -1091,12 +1137,11 @@ filter_highest_lowest <- function(df, col){
     filter(avg == max(avg) | avg == min(avg)))
 }
 
-# Usage example, Lab 3 Question 11
-#first_year_instructors <- teacher_evals_clean |>
+# Usage example, Lab 3 Question 10
+#teacher_evals_clean |>
 #  group_by(teacher_id) |>
-#  filter(seniority == 1)
-
-#filter_highest_lowest(first_year_instructors, percent_failed_cur)
+#  filter(question_no == 901) |>
+#  filter_highest_lowest(SET_score_avg)
 
 ```
 
@@ -1360,7 +1405,13 @@ summary(species_mod)
 
 <!-- How did you revise your thinking throughout the course? How did you revise your thinking on the code examples you have provided in your portfolio? -->
 
-I revised my thinking by taking careful note of the feedback I received and resubmitting the questions where I had demonstrated a lack of full understanding (as opposed to forgetting a space or newline). For example, in lab 3 I used unnecessary intermediate variables for the min and max values towards the end, and revised those to use a single pipeline. I then applied this change in my future work, and have made an intentional effort not to use any intermediate variables since. In this way, I feel my code quality has steadily increased throughout the assignments, as shown in the code I've provided in the portfolio.
+I revised my thinking by taking careful note of the feedback I received and resubmitting the questions where I had demonstrated a lack of full
+understanding (as opposed to forgetting a space or newline). For example, in lab 3 I used unnecessary intermediate variables for the min and
+max values towards the end, and revised those to use a single pipeline. I then applied this change in my future work, and have made an
+intentional effort not to use any intermediate variables since. In this way, I feel my code quality has steadily increased throughout the
+assignments, as shown in the code I've provided in the portfolio. However, I've also learned about when intermediate variables are appropriate,
+like if they can be used to avoid nested pipelines like in my right_join() in WD-5. The goal is always to write readable and efficient code,
+and over the course I've revised my thinking to appropriately use (or not use) intermediate variables to do this.
 
 <!-- For the revisions included in your Portfolio, to help me understand the nature of your revisions, please denote somehow the feedback I provided you (e.g., boldface, italics, colored text) before your revisions. -->
 
@@ -1368,7 +1419,12 @@ I revised my thinking by taking careful note of the feedback I received and resu
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
-I've extended my thinking by taking on the challenge activities, and consistently aiming for above just the bare minimum (not just picking the easiest challenge available). I used code chunks from these challenges for my portfolio, because I feel that the times I challenged myself resulted in better and more sophisticated code than the code in the labs and practice activities.
+I've extended my thinking by taking on the challenge activities, and consistently aiming for above just the bare minimum (not just picking the
+easiest challenge available). I used code chunks from these challenges for my portfolio, because I feel that the times I challenged myself
+resulted in better and more sophisticated code than the code in the labs and practice activities. Additionally, in DVS-7 I extended my thinking
+by looking through the kable_styling() documentation to figure out how to add interactive aspects like hovering to my tables. Creating the
+tables for DVS-7 required learning more about how the HTML is rendered, because not all the options are available for HTML (like changing
+stripe color for alternating stripes).
 
 ## Peer Support & Collaboration
 
@@ -1376,8 +1432,18 @@ I've extended my thinking by taking on the challenge activities, and consistentl
 
 Here is some feedback I gave a classmate on Lab 5 for their code efficiency that I am proud of:
 
-Some suggestions I have would be to use stringr functions like str_detect to find Annabel Miller instead of printing out all of the people and finding her manually. Also, although the right, left, and full joins work, the inner joins might be more suitable for this use case and filter out more of the unwanted data (rows with NA values in last step). Lastly, for join conditions like by = join_by(person_id == person_id), you should just be able to do by = "person_id" which reads a little easier. Overall nice work! Looks like you were able to get hte right answer pretty efficiently.
+Some suggestions I have would be to use stringr functions like str_detect to find Annabel Miller instead of printing out all of the people and
+finding her manually. Also, although the right, left, and full joins work, the inner joins might be more suitable for this use case and filter
+out more of the unwanted data (rows with NA values in last step). Lastly, for join conditions like by = join_by(person_id == person_id), you
+should just be able to do by = "person_id" which reads a little easier. Overall nice work! Looks like you were able to get hte right answer
+pretty efficiently.
+
 
 <!-- Include a description of how you grew as a collaborator through the weekly pair programming activities.   -->
 
-During the weekly pair programming activities I improved on my ability to make sure both me and my partner understood each question and solution that we worked on. Because we switched back and forth between coding and developing, even if my partner or I had previously vocalized that a concept made sense, it was always very clear when we had an incomplete understanding. The pair programming activities bettered my ability to gauge my partners level of understanding, and also made it clear to me how important it is to only move on once both me and my partner fully understand what's going on. Additionally, having to articulate my thought processes without demonstrating or showing what I meant has forced me to improve the clarity of my explanations and be more patient.
+During the weekly pair programming activities I improved on my ability to make sure both me and my partner understood each question and
+solution that we worked on. Because we switched back and forth between coding and developing, even if my partner or I had previously vocalized
+that a concept made sense, it was always very clear when we had an incomplete understanding. The pair programming activities bettered my
+ability to gauge my partners level of understanding, and also made it clear to me how important it is to only move on once both me and my
+partner fully understand what's going on. Additionally, having to articulate my thought processes without demonstrating or showing what I meant
+has forced me to improve the clarity of my explanations and be more patient.
