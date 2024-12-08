@@ -9,3 +9,6 @@ editor: visual
 -   Focus specifically on data science concepts and the skills we employed in learning them, not a laundry list of topics that you learned (those are in the syllabus, so I know them already).
 
 -   Focus on a small number of specific areas of growth for you that happened in STAT 331. Identify at least one artifact in your portfolio that illustrates each area of growth and explain how this artifact shows growth in the way you are describing.
+
+
+This class helped me write more readable code, especially in writing pipelines doing transformations on data frames. The feedback I received about removing intermediate variables and minimizing the times I call a function (like filter()) really stuck with me throughout the quarter, as evidenced by PE-1 which illustrates a concise pipeline that doesn't have any unnecessary repeating functions. Another way I improved as a student of data science in this class was in my plotting skills. The emphasis on writing visually appealing plots that are easy to read has made me much more aware of how I convey statistical analysis with visuals. In DVS-2 I created plots that can be understood quickly without having to tilt your head, and with colors that convey meaning and make the important parts of the plot more noticeable.
