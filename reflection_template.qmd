@@ -1140,8 +1140,44 @@ surveys |>
 
 -   `map()` function with **more than one** input (e.g., `map_2()` or `pmap()`)
 
+Lab 2 Question 18 (Revised to simulate 1000 random rodent weights following normal distribution using the mean and sd for each species and plotted along with mean to further reject the conclusion that the mean weight is the same for all 14 rodent species)
+
 ```{r}
 #| label: pe-3-map-2
+
+simulate_data <- function(mean, sd){
+  stopifnot(is.numeric(mean), is.numeric(sd))
+  return(rnorm(n = 1000, mean = mean, sd = sd))
+}
+
+surveys |>
+  group_by(species) |>
+  summarise(
+    mean_weight = mean(weight, na.rm = TRUE),
+    sd_weight = sd(weight, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(simulated_weights = map2(
+    .x = mean_weight,
+    .y = sd_weight,
+    .f = simulate_data
+  )) |>
+  unnest(cols = simulated_weights) |>
+  ggplot(mapping = aes(x = simulated_weights)) +
+  geom_density(alpha = 0.3, fill = "steelblue") +
+  geom_vline(mapping = aes(xintercept = mean_weight),
+             linetype = "dashed",
+             color = "red") +
+  facet_wrap(~ species, scales = "free_y") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    strip.text = element_text(face = "bold", size = 9)
+  ) +
+  labs(title = "Distribution of Simulated Weights for Rodent Weight",
+       x = "Simulated Weight",
+       y = "",
+       subtitle = "Density")
 
 ```
 
@@ -1210,18 +1246,84 @@ ca_childcare |>
 
 -   Example 1
 
+Lab 2 Question 18 (Revised to simulate 1000 random rodent weights following normal distribution using the mean and sd for each species and plotted along with mean to further reject the conclusion that the mean weight is the same for all 14 rodent species)
 
 ```{r}
 #| label: dsm-1-1
 
+simulate_data <- function(mean, sd){
+  stopifnot(is.numeric(mean), is.numeric(sd))
+  return(rnorm(n = 1000, mean = mean, sd = sd))
+}
 
+surveys |>
+  group_by(species) |>
+  summarise(
+    mean_weight = mean(weight, na.rm = TRUE),
+    sd_weight = sd(weight, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(simulated_weights = map2(
+    .x = mean_weight,
+    .y = sd_weight,
+    .f = simulate_data
+  )) |>
+  unnest(cols = simulated_weights) |>
+  ggplot(mapping = aes(x = simulated_weights)) +
+  geom_density(alpha = 0.3, fill = "steelblue") +
+  geom_vline(mapping = aes(xintercept = mean_weight),
+             linetype = "dashed",
+             color = "red") +
+  facet_wrap(~ species, scales = "free_y") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    strip.text = element_text(face = "bold", size = 9)
+  ) +
+  labs(title = "Distribution of Simulated Weights for Rodent Weight",
+       x = "Simulated Weight",
+       y = "",
+       subtitle = "Density")
+  
 
 ```
 
 -   Example 2
 
+Lab 3 (Couldn't find any other previous labs where simulating data would help answer questions so I simulated 1000 more teacher eval entries using rnorm for SET_score_avg and stud_grade_avg, runif for resp_share, and sampling random integers for teacher_id)
+
 ```{r}
 #| label: dsm-1-2
+
+# get min, max, mean, and sd for numeric variables
+teacher_evals |>
+  summarise(across(where(is.numeric), 
+                   list(min = ~min(., na.rm = TRUE), 
+                        max = ~max(., na.rm = TRUE), 
+                        mean = ~mean(., na.rm = TRUE), 
+                        sd = ~sd(., na.rm = TRUE)
+                        ),
+                    .names = "{col}_values_{fn}"
+                   )) |>
+   pivot_longer(
+    cols = everything(),
+    names_to = c("variable", "statistic"),
+    names_sep = "_values_",
+    values_to = "value"
+  ) |>
+  pivot_wider(
+    names_from = "statistic",
+    values_from = "value"
+  )
+
+# simulate teacher eval
+simulated_teacher_evals <- tibble(
+  # ref: https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/sample, not runif bc not continuous
+  teacher_id = sample(3432:110292, 1000, replace = TRUE),
+  SET_score_avg = rnorm(n = 1000, mean = 4.39, sd = 0.83),
+  resp_share = runif(n = 1000, min = 0.0035, max = 1),
+  stud_grade_avg = rnorm(n = 1000, mean = 3.96, sd = 0.55)
+)
 
 ```
 
