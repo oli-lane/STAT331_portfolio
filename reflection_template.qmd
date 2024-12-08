@@ -88,14 +88,14 @@ teacher_evals_clean <- teacher_evals |>
 
 -   character -- specifically a string (example must use functions from **stringr**)
 
-Lab 5
+Lab 5 (revised to use str_starts instead of str_detect as advised in midterm portfolio review. str_start() is more in line with the clue because her first name is Annabel, not her last name)
 
 ```{r}
 #| label: wd-3-string
 
 person |>
-  filter(str_detect(name, "Annabel"),
-         address_street_name == "Franklin Ave") |>
+  filter(address_street_name == "Northwestern Dr" & address_number == max(address_number) |
+         str_starts(name, "Annabel") & address_street_name == "Franklin Ave") |>
   inner_join(interview, by = join_by(id == person_id)) |>
   pull(transcript)
 
@@ -112,14 +112,31 @@ person |>
 
 -   date (example must use functions from **lubridate**)
 
-Lab 5
+Lab 5 (revised to include all the suspect information and left join with interviews to see if the final suspect had any additional clues. Also revised to convert date to a date object and check if the date is within the interval from 12/1/2017 - 12/31/2017, which utilizes lubridate functions instead of using strdetect and looking for \^201712. This ensures that the code is resistant to changes in date formatting)
 
 ```{r}
 #| label: wd-3-date
 
-crime_scene_report |>
-  filter(ymd(date) == '2018-01-15', type == 'murder', city == 'SQL City') |>
-  pull(description)
+drivers_license |>
+  rename(license_id = id) |>
+  filter(gender == "female",
+         hair_color == "red",
+         car_make == "Tesla",
+         car_model == "Model S",
+         height >= 65,
+         height <= 67) |>
+  inner_join(person, by = "license_id") |>
+  inner_join(facebook_event_checkin, by = join_by(id == person_id)) |>
+  mutate(date = ymd(date)) |>
+  filter(
+    event_name == "SQL Symphony Concert",
+    date %within% interval(ymd("2017-12-01"), ymd("2017-12-31"))
+  ) |>
+  group_by(name) |>
+  filter(n() == 3) |>
+  distinct(name, .keep_all = TRUE) |>
+  left_join(interview, by = join_by(id == person_id)) |>
+  select(name, id, transcript)
 
 ```
 
@@ -127,33 +144,38 @@ crime_scene_report |>
 
 -   numeric (using `as.numeric()` is not sufficient)
 
+Challenge 3 Question 1
+
 ```{r}
 #| label: wd-4-numeric
 
-
+teacher_evals_compare <- teacher_evals |>
+  filter(question_no == 903) |>
+  mutate(
+    SET_level = ifelse(SET_score_avg >= 4, "Excellent", "Standard"),
+    sen_level = ifelse(seniority <= 4, "Junior", "Senior")
+  ) |>
+  select(
+    course_id,
+    SET_level,
+    sen_level
+)
 
 ```
 
 -   character -- specifically a string (example must use functions from **stringr**)
 
-Lab 4 Question 3
+Lab 5 (revised to change Dr to Drive using a stringr function to make the investigation more resistant to different inputs. This way, if the address is entered as Northwestern Drive or Northwestern Dr, I'll still be able to find the witness)
 
 ```{r}
 #| label: wd-4-string
 
-ca_childcare <- ca_childcare |> 
-  mutate(county_name = str_remove(county_name, " County"),
-         region = fct_collapse(county_name,
-                               "Superior California" = c("Butte", "Colusa", "El Dorado", "Glenn", "Lassen", "Modoc", "Nevada", "Placer", "Plumas", "Sacramento", "Shasta", "Sierra", "Siskiyou", "Sutter", "Tehama", "Yolo", "Yuba"),
-                               "North Coast" = c("Del Norte", "Humboldt", "Lake", "Mendocino", "Napa", "Sonoma", "Trinity"),
-                               "San Francisco Bay Area" = c("Alameda", "Contra Costa", "Marin", "San Francisco", "San Mateo", "Santa Clara", "Solano"),
-                               "Northern San Joaquin Valley" = c("Alpine", "Amador", "Calaveras", "Madera", "Mariposa", "Merced", "Mono", "San Joaquin", "Stanislaus", "Tuolumne"),
-                               "Central Coast" = c("Monterey", "San Benito", "San Luis Obispo", "Santa Barbara", "Santa Cruz", "Ventura"),
-                               "Southern San Joaquin Valley" = c("Fresno", "Inyo", "Kern", "Kings", "Tulare"),
-                               "Inland Empire" = c("Riverside", "San Bernardino"),
-                               "Los Angeles County" = c("Los Angeles"),
-                               "Orange County" = c("Orange"),
-                               "San Diego-Imperial" = c("San Diego", "Imperial")))
+person |>
+  mutate(address_street_name = str_replace(address_street_name, "Dr$", "Drive")) |>
+  filter(address_street_name == "Northwestern Drive" & address_number == max(address_number) |
+         str_starts(name, "Annabel") & address_street_name == "Franklin Ave") |>
+  inner_join(interview, by = join_by(id == person_id)) |>
+  pull(transcript)
 
 ```
 
@@ -182,15 +204,32 @@ ca_childcare <- ca_childcare |>
 
 -   date (example must use functions from **lubridate**)
 
-Lab 5 (revised to add new column with date object)
+Lab 5 (revised to include all the suspect information and left join with interviews to see if the final suspect had any additional clues. Also revised to convert the date to a date object and create new variables for the month and year of the date using lubridate functions, and then filter the data based on these new date variables)
 
 ```{r}
 #| label: wd-4-date
 
-crime_scene_report |>
-  mutate(date_object = ymd(date)) |>
-  filter(city == "SQL City", date_object == ymd(20180115), type == "murder") |>
-  pull(description)
+drivers_license |>
+  rename(license_id = id) |>
+  filter(gender == "female",
+         hair_color == "red",
+         car_make == "Tesla",
+         car_model == "Model S",
+         height >= 65,
+         height <= 67) |>
+  inner_join(person, by = "license_id") |>
+  inner_join(facebook_event_checkin, by = join_by(id == person_id)) |>
+  mutate(date = ymd(date),
+         year = year(date),
+         month = month(date)) |>
+  filter(event_name == "SQL Symphony Concert",
+         year == 2017,
+         month == 12) |>
+  group_by(name) |>
+  filter(n() == 3) |>
+  distinct(name, .keep_all = TRUE) |>
+  left_join(interview, by = join_by(id == person_id)) |>
+  select(name, id, transcript)
 
 ```
 
@@ -198,15 +237,57 @@ crime_scene_report |>
 
 -   `left_join()`
 
+Lab 5 (revised to include all the suspect information and left join with interviews to see if the final suspect had any additional clues. Left join is necessary here because we're only **adding** the interview information and don't want to remove the suspect if they don't have an interview)
+
 ```{r}
 #| label: wd-5-left
+
+drivers_license |>
+  rename(license_id = id) |>
+  filter(gender == "female",
+         hair_color == "red",
+         car_make == "Tesla",
+         car_model == "Model S",
+         height >= 65,
+         height <= 67) |>
+  inner_join(person, by = "license_id") |>
+  inner_join(facebook_event_checkin, by = join_by(id == person_id)) |>
+  filter(event_name == "SQL Symphony Concert",
+         str_detect(date, "^201712")) |>
+  group_by(name) |>
+  filter(n() == 3) |>
+  distinct(name, .keep_all = TRUE) |>
+  left_join(interview, by = join_by(id == person_id)) |>
+  select(name, id, transcript)
 
 ```
 
 -   `right_join()`
 
+Lab 5 (revised to include all the suspect information and left join with interviews to see if the final suspect had any additional clues. Right join is necessary here because we're only **adding** the interview information and don't want to remove the suspect if they don't have an interview. Because the suspect information is what we want to add too and it requires a lot of transformations/filters, I used an intermediate variable so that it's clearer to the reads what's being joined, as opposed to a nested pipeline)
+
 ```{r}
 #| label: wd-5-right
+
+suspect <- drivers_license |>
+  rename(license_id = id) |>
+  filter(gender == "female",
+         hair_color == "red",
+         car_make == "Tesla",
+         car_model == "Model S",
+         height >= 65,
+         height <= 67) |>
+  inner_join(person, by = "license_id") |>
+  inner_join(facebook_event_checkin, by = join_by(id == person_id)) |>
+  filter(event_name == "SQL Symphony Concert",
+         str_detect(date, "^201712")) |>
+  group_by(name) |>
+  filter(n() == 3) |>
+  distinct(name, .keep_all = TRUE)
+
+interview |>
+  right_join(suspect, by = join_by(person_id == id)) |>
+  select(name, person_id, transcript)
 
 ```
 
@@ -222,13 +303,6 @@ person |>
   filter(address_number == max(address_number)) |>
   inner_join(interview, by = join_by(id == person_id)) |>
   pull(transcript)
-
-```
-
--   `full_join()`
-
-```{r}
-#| label: wd-5-full
 
 ```
 
@@ -252,15 +326,13 @@ person |>
 
 -   `pivot_longer()`
 
-Lab 4 Question 6
+Lab 4 Question 6 (revised to use if_all() instead of repeating !is.na(.) for each column. First revised with across() but changed to if_all() after seeing using across() in a filter() is superseded in Discord)
 
 ```{r}
 #| label: wd-7-long
 
 ca_childcare |>
-  filter(!is.na(mc_infant),
-         !is.na(mc_toddler),
-         !is.na(mc_preschool)) |>
+  filter(if_all(c(mc_infant, mc_toddler, mc_preschool), ~ !is.na(.))) |>
   pivot_longer(cols = c(mc_infant,
                         mc_toddler,
                         mc_preschool),
@@ -295,7 +367,7 @@ ca_childcare |>
 
 -   `pivot_wider()`
 
-Lab 4 Question 4
+Lab 4 Question 4 (Revised to add kable styling ref: https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html)
 
 ```{r}
 #| label: wd-7-wide
@@ -307,7 +379,9 @@ ca_childcare |>
   pivot_wider(names_from = study_year,
               values_from = median_income,
               names_prefix = "median_income_") |>
-  arrange(desc(median_income_2018))
+  arrange(desc(median_income_2018)) |>
+  kable() |>
+  kable_styling()
 
 ```
 
@@ -382,22 +456,16 @@ teacher_evals_clean |>
 
 -   Example of function formatting
 
-Lab 2 Question 8
+Lab 3 Questions 10-12 (Questions 10, 11, and 12 all involve filtering to find instructors with the highest and lowest means for a specific variable, ex: % students failing in the current semester across all courses. I revised to abstract this duplicated logic into a function called filter_highest_lowest)
 
 ```{r}
 #| label: r-2-3
 
-ggplot(data = surveys,
-       mapping = aes(x = species, y = weight, fill = genus)) +
-  geom_jitter(alpha = 0.1, color = "steelblue") + 
-  geom_boxplot(outliers = FALSE) +
-  labs(x = "Species of Rodent",
-       y = "",
-       title = "Distribution of Weight Within Rodent Species",
-       subtitle = "Weight of Rodent (grams)",
-       ) +
-  theme(axis.text.x = element_text(angle = 45)) +
-  scale_fill_brewer(palette = "Set2")
+filter_highest_lowest <- function(df, col){
+  return(df |>
+    summarise(avg = mean({{ col }})) |>
+    filter(avg == max(avg) | avg == min(avg)))
+}
 
 ```
 
@@ -405,21 +473,51 @@ ggplot(data = surveys,
 
 -   Example -- any context
 
-Lab 5
+Lab 4 Question 5
 
 ```{r}
 #| label: r-3-example
 
-crime_scene_report |>
-  filter(ymd(date) == '2018-01-15', type == 'murder', city == 'SQL City') |>
-  pull(description)
+ca_childcare |>
+  filter(study_year == 2018) |>
+  group_by(region) |>
+  summarise(median_mc_infant = median(mc_infant, na.rm = TRUE)) |>
+  slice_min(order_by = median_mc_infant,
+            n = 1)
 
 ```
 
 -   Example of function stops
 
+Lab 5 (I couldn't find a good spot to write a function that operates on vectors so I created another function that operates on dataframes. Getting the transcript was a common step in the investigation, so I wrote a function to accept a dataframe and get the transcripts for the the people in it. For the final suspect, we need to check if there are any more clues, so I modified get_transcript() to accept a boolean keep_na which will do a left join instead of an inner join so the function supports cases where we want to get the transcript even if it's NA)
+
 ```{r}
 #| label: r-3-function-stops
+
+get_transcript <- function(df, keep_na) {
+  stopifnot(is.logical(keep_na))
+  
+  if (keep_na) {
+    return(df |>
+             left_join(interview, by = "person_id") |>
+             pull(transcript))
+  } else {
+    return(df |>
+             inner_join(interview, by = "person_id") |>
+             pull(transcript))
+  }
+}
+
+#Usage example:
+#get_fit_now_member |>
+#  filter(membership_status == "gold",
+#         str_detect(id, "^48Z")) |>
+#  inner_join(get_fit_now_check_in, join_by(id == membership_id)) |>
+#  filter(check_in_date == '20180109') |>
+#  inner_join(person, join_by(person_id == id, name)) |>
+#  inner_join(drivers_license, by = join_by(license_id == id)) |>
+#  filter(str_detect(plate_number, "H42W")) |>
+#  get_transcript(keep_na = FALSE)
 
 ```
 
@@ -429,21 +527,21 @@ crime_scene_report |>
 
 -   at least two numeric variables
 
-Lab 1 Question 6
+Lab 2 Question 4
 
 ```{r}
 #| label: dvs-1-num
 
-ggplot(data = ToothGrowth, 
-       mapping = aes(x = supp, y = len)) +
-  geom_boxplot() +
-  labs(x = "Supplement", y = "Length of Teeth (mm)")
+ggplot(data = surveys,
+       mapping = aes(x = weight, y = hindfoot_length)) +
+  facet_wrap(~species) + 
+  geom_point(alpha = 0.2) + 
+  labs(x = "weight (grams)",
+       y = " ",
+       title = "Relationship between weight and hindfoot length of rodents",
+       subtitle = "hindfoot_length (mm)"
+       )
 
-ToothGrowth |>
-  mutate(dose = as.factor(dose)) |>
-  ggplot(mapping = aes(x = dose, y = len)) +
-  geom_boxplot() +
-  labs(x = "Dose of Supplement (mg/day)", y = "Length of Teeth (mm)")
 
 ```
 
@@ -559,22 +657,43 @@ ggplot(data = surveys,
 
 -   I can modify the text in my plot to be more readable
 
-Lab 2 Question 15
+Lab 4 Question 6 (Revised to include dollar signs next to the weekly price on the y axis. Ref: https://scales.r-lib.org/reference/label_dollar.html. label_dollar() is necessary because we are scaling the y axis so if I added $ sign to weekly_price earlier with dollar() I would get in error in scale_y_continuous())
 
 ```{r}
 #| label: dvs-2-2
 
-ggplot(data = surveys,
-       mapping = aes(x = species, y = weight, fill = genus)) +
-  geom_jitter(alpha = 0.1, color = "steelblue") + 
-  geom_boxplot(outliers = FALSE) +
-  labs(x = "Species of Rodent",
+ca_childcare |>
+  filter(if_all(c(mc_infant, mc_toddler, mc_preschool), ~ !is.na(.))) |>
+  pivot_longer(cols = c(mc_infant,
+                        mc_toddler,
+                        mc_preschool),
+               names_to = "age_class",
+               values_to = "weekly_price") |>
+  mutate(age_class = factor(age_class,
+                            levels = c("mc_infant", "mc_toddler", "mc_preschool"),
+                            labels = c("Infant", "Toddler", "Preschool")),
+         region = factor(region)) |>
+  ggplot(mapping = aes(x = study_year,
+                       y = weekly_price,
+                       color = fct_reorder2(.f = region,
+                                            .x = study_year,
+                                            .y = weekly_price
+                       ))) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess") +
+  facet_wrap(~age_class) +
+  scale_x_continuous(breaks = seq(2008,
+                                  2018,
+                                  by = 2)) +
+  scale_y_continuous(labels = label_dollar(),
+                     limits = c(100, 500)) +
+  theme(aspect.ratio = 1,
+        axis.text = element_text(size = 6)
+  ) +
+  labs(x = "Study Year",
        y = "",
-       title = "Distribution of Weight Within Rodent Species",
-       subtitle = "Weight of Rodent (grams)",
-       ) +
-  theme(axis.text.x = element_text(angle = 45)) +
-  scale_fill_brewer(palette = "Set2")
+       subtitle = "Weekly Median Price for Center-Based Childcare",
+       color = "California Region")
 
 ```
 
@@ -646,51 +765,61 @@ ggplot(data = surveys,
 
 -   I can use annotations
 
+Challenge 2 (revised to add the mean weights of each species as text on the graph to make it easier to see which species have the biggest rodents.
+ref1: https://ggplot2.tidyverse.org/reference/geom_text.html)
+
 ```{r}
 #| label: dvs-3-2
+
+mean_weights <- surveys |>
+  group_by(species, genus) |>
+  summarise(mean_weight = mean(weight, na.rm = TRUE), .groups = 'drop')
+
+surveys |> ggplot(aes(x = weight, y = species, fill = genus)) +
+  geom_jitter(alpha = 0.1, color = "steelblue") +
+  geom_boxplot(outliers = FALSE) +
+  geom_text(
+    data = mean_weights,
+    aes(x = mean_weight, y = species, label = round(mean_weight, 1)),
+    color = "black",
+    size = 3,
+    fontface = "bold",
+    vjust = 2
+  ) +
+  labs(
+    x = "Weight of Rodent (grams)",
+    y = "",
+    title = "Distribution of Weight Within Rodent Species",
+    subtitle = "Species of Rodent"
+  ) +
+  scale_fill_brewer(palette = "Pastel2")
 
 ```
 
 -   I can be creative...
 
-Lab 4 Question 6
+Lab 1 Question 6 (Revised to look better than the bare boxplot. Added dark theme, custom colors, changed the font to Georgia, centered the title, added labels that don't require head-tilting and changed the font sizes to look better)
 
 ```{r}
 #| label: dvs-3-3
 
-ca_childcare |>
-  filter(!is.na(mc_infant),
-         !is.na(mc_toddler),
-         !is.na(mc_preschool)) |>
-  pivot_longer(cols = c(mc_infant,
-                        mc_toddler,
-                        mc_preschool),
-               names_to = "age_class",
-               values_to = "weekly_price") |>
-  mutate(age_class = factor(age_class,
-                            levels = c("mc_infant", "mc_toddler", "mc_preschool"),
-                            labels = c("Infant", "Toddler", "Preschool")),
-         region = factor(region)) |>
-  ggplot(mapping = aes(x = study_year,
-                       y = weekly_price,
-                       color = fct_reorder2(.f = region,
-                                            .x = study_year,
-                                            .y = weekly_price
-                       ))) +
-  geom_point(alpha = 0.3) +
-  geom_smooth(method = "loess") +
-  facet_wrap(~age_class) +
-  scale_x_continuous(breaks = seq(2008,
-                                  2018,
-                                  by = 2)) +
-  scale_y_continuous(limits = c(100, 500)) +
-  theme(aspect.ratio = 1,
-        axis.text = element_text(size = 6),
+ggplot(data = ToothGrowth, 
+       mapping = aes(x = supp, y = len, fill = supp)) + 
+  geom_boxplot() +
+  labs(
+    x = "Supplement Type", 
+    y = "", 
+    title = "Guinea Pig Teeth Growth by Vitamin C Delivery Method",
+    subtitle = "Length of Teeth (mm)"
   ) +
-  labs(x = "Study Year",
-       y = "",
-       subtitle = "Weekly Median Price for Center-Based Childcare ($)",
-       color = "California Region")
+  scale_fill_brewer(palette = "Pastel2") +
+  theme_dark() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold", family = "Georgia"),
+    plot.subtitle = element_text(size = 12, family = "Georgia"),
+    axis.title = element_text(size = 12, family = "Georgia"),
+    axis.text = element_text(size = 10, family = "Georgia")
+  )
 
 ```
 
@@ -698,23 +827,28 @@ ca_childcare |>
 
 -   Example using `summarize()`
 
-Lab 3 Question 10
+Lab 3 Question 6
 
 ```{r}
 #| label: dvs-4-summarize
 
 teacher_evals_clean |>
-  group_by(teacher_id) |>
-  filter(question_no == 901) |>
-  summarise(avg = mean(SET_score_avg)) |>
-  filter(avg == max(avg) | avg == min(avg))
+  summarise(instructors = n_distinct(teacher_id),
+            courses = n_distinct(course_id))
 
 ```
 
 -   Example using `across()`
 
+Lab 3 Question 6 (Revised to use across() to find distinct values. This makes the code more scalable if I wanted to find the number of unique values for other variables too, as I could just add to .cols and not have to specify n_distinct for every new column.)
+
 ```{r}
 #| label: dvs-4-across
+
+teacher_evals_clean |>
+  summarise(across(.cols = c(teacher_id, course_id), 
+                   .fns = n_distinct, 
+                   .names = "Unique {.col}s"))
 
 ```
 
@@ -722,15 +856,39 @@ teacher_evals_clean |>
 
 -   Example 1
 
+Lab 4 Question 4 (Revised to add kable styling ref: https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html)
+
 ```{r}
 #| label: dvs-5-1
+
+ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year,
+              values_from = median_income,
+              names_prefix = "median_income_") |>
+  arrange(desc(median_income_2018)) |>
+  kable() |>
+  kable_styling()
 
 ```
 
 -   Example 2
 
+Lab 3 Question 12 (Revised to add kable styling ref: https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html)
+
 ```{r}
 #| label: dvs-5-2
+
+teacher_evals_clean |>
+  filter(academic_degree %in% c("dr", "prof"),
+         sex == "female") |>
+  group_by(teacher_id) |>
+  summarise(avg_resp = mean(resp_share)) |>
+  filter(avg_resp == max(avg_resp) | avg_resp == min(avg_resp)) |>
+  kable() |>
+  kable_styling()
 
 ```
 
@@ -738,7 +896,7 @@ teacher_evals_clean |>
 
 -   Example 1
 
-Lab 4 Question 4
+Lab 4 Question 4 (Revised to add kable styling ref: https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html)
 
 ```{r}
 #| label: dvs-6-1
@@ -750,20 +908,28 @@ ca_childcare |>
   pivot_wider(names_from = study_year,
               values_from = median_income,
               names_prefix = "median_income_") |>
-  arrange(desc(median_income_2018))
+  arrange(desc(median_income_2018)) |>
+  kable() |>
+  kable_styling()
 
 ```
 
 -   Example 2
 
-Lab 3, Question 6
+Lab 3, Question 8 (Revised to add kable styling ref: https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html)
 
 ```{r}
 #| label: dvs-6-2
 
-teacher_evals_clean |>
-  summarise(instructors = n_distinct(teacher_id),
-            courses = n_distinct(course_id))
+teacher_evals_clean|>
+  distinct(teacher_id, .keep_all = TRUE) |>
+  group_by(academic_degree, sex) |>
+  summarise(
+    avg_seniority = mean(seniority),
+    total_instructors = n_distinct(teacher_id)
+  ) |>
+  kable() |>
+  kable_styling()
 
 ```
 
@@ -771,33 +937,49 @@ teacher_evals_clean |>
 
 -   Example 1
 
-Lab 3 Question 12
+Lab 3, Question 8 (Revised to add kable styling ref1: https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+ref2: https://www.rdocumentation.org/packages/kableExtra/versions/1.4.0/topics/kable_styling)
+
 
 ```{r}
 #| label: dvs-7-1
 
-teacher_evals_clean |>
-  filter(academic_degree %in% c("dr", "prof"),
-         sex == "female") |>
-  group_by(teacher_id) |>
-  summarise(avg_resp = mean(resp_share)) |>
-  filter(avg_resp == max(avg_resp) | avg_resp == min(avg_resp))
+teacher_evals_clean|>
+  distinct(teacher_id, .keep_all = TRUE) |>
+  group_by(academic_degree, sex) |>
+  summarise(
+    avg_seniority = mean(seniority),
+    total_instructors = n_distinct(teacher_id)
+  ) |>
+  kable() |>
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed")
+  )
 
 ```
 
 -   Example 2
 
-Lab 4 Question 5
+Lab 4 Question 4 (Revised to add kable styling ref1: https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+ref2: https://www.rdocumentation.org/packages/kableExtra/versions/1.4.0/topics/kable_styling)
 
 ```{r}
 #| label: dvs-7-2
 
 ca_childcare |>
-  filter(study_year == 2018) |>
-  group_by(region) |>
-  summarise(median_mc_infant = median(mc_infant, na.rm = TRUE)) |>
-  slice_min(order_by = median_mc_infant,
-            n = 1)
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year,
+              values_from = median_income,
+              names_prefix = "median_income_") |>
+  arrange(desc(median_income_2018)) |>
+  kable() |>
+  kable_styling(
+    htmltable_class = "lightable-material",
+    html_font = "Arial Narrow"
+  )
 
 ```
 
@@ -826,15 +1008,37 @@ get_fit_now_member |>
 
 -   `across()`
 
+Lab 3 Question 6 (Revised to use across() to find distinct values. This makes the code more scalable if I wanted to find the number of unique values for other variables too, as I could just add to .cols and not have to specify n_distinct for every new column)
+
 ```{r}
 #| label: pe-1-across
+
+teacher_evals_clean |>
+  summarise(across(.cols = c(teacher_id, course_id), 
+                   .fns = n_distinct, 
+                   .names = "Unique {.col}s"))
 
 ```
 
 -   `map()` functions
 
+Lab 8 Question 1 (Revised to add kable styling ref: https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html)
+
 ```{r}
 #| label: pe-1-map-1
+
+surveys |>
+  map_chr(typeof) |>
+  data.frame() |>
+  rownames_to_column() |>
+  setNames(c("variable", "type")) |>
+  pivot_wider(names_from = variable,
+              values_from = type) |>
+  kable() |>
+  kable_styling()
+
+# ref: https://www.geeksforgeeks.org/convert-row-names-into-column-of-dataframe-in-r/
+# ref: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/setNames
 
 ```
 
@@ -842,15 +1046,57 @@ get_fit_now_member |>
 
 -   Function that operates on vectors
 
+Lab 5 (I couldn't find a good spot to write a function that operates on vectors so I created another function that operates on dataframes. Getting the transcript was a common step in the investigation, so I wrote a function to accept a dataframe and get the transcripts for the the people in it. For the final suspect, we need to check if there are any more clues, so I modified get_transcript() to accept a boolean keep_na which will do a left join instead of an inner join so the function supports cases where we want to get the transcript even if it's NA)
+
 ```{r}
 #| label: pe-2-1
+
+get_transcript <- function(df, keep_na) {
+  stopifnot(is.logical(keep_na))
+  
+  if (keep_na) {
+    return(df |>
+             left_join(interview, by = "person_id") |>
+             pull(transcript))
+  } else {
+    return(df |>
+             inner_join(interview, by = "person_id") |>
+             pull(transcript))
+  }
+}
+
+#Usage example:
+#get_fit_now_member |>
+#  filter(membership_status == "gold",
+#         str_detect(id, "^48Z")) |>
+#  inner_join(get_fit_now_check_in, join_by(id == membership_id)) |>
+#  filter(check_in_date == '20180109') |>
+#  inner_join(person, join_by(person_id == id, name)) |>
+#  inner_join(drivers_license, by = join_by(license_id == id)) |>
+#  filter(str_detect(plate_number, "H42W")) |>
+#  get_transcript(keep_na = FALSE)
 
 ```
 
 -   Function that operates on data frames
 
+Lab 3 Questions 10-12 (Questions 10, 11, and 12 all involve filtering to find instructors with the highest and lowest means for a specific variable, ex: % students failing in the current semester across all courses. I revised to abstract this duplicated logic into a function called filter_highest_lowest. This function makes it easy to analyze the highest and lowest performance of any group of instructors across any quantitative variable in the dataset)
+
 ```{r}
 #| label: pe-2-2
+
+filter_highest_lowest <- function(df, col){
+  return(df |>
+    summarise(avg = mean({{ col }})) |>
+    filter(avg == max(avg) | avg == min(avg)))
+}
+
+# Usage example, Lab 3 Question 11
+#first_year_instructors <- teacher_evals_clean |>
+#  group_by(teacher_id) |>
+#  filter(seniority == 1)
+
+#filter_highest_lowest(first_year_instructors, percent_failed_cur)
 
 ```
 
@@ -858,15 +1104,37 @@ get_fit_now_member |>
 
 -   `across()`
 
+Lab 3 Question 6 (Revised to use across() to find distinct values. This makes the code more scalable if I wanted to find the number of unique values for other variables too, as I could just add to .cols and not have to specify n_distinct for every new column)
+
 ```{r}
 #| label: pe-3-across
+
+teacher_evals_clean |>
+  summarise(across(.cols = c(teacher_id, course_id), 
+                   .fns = n_distinct, 
+                   .names = "Unique {.col}s"))
 
 ```
 
 -   `map()` function with **one** input (e.g., `map()`, `map_chr()`, `map_dbl()`, etc.)
 
+Lab 8 Question 1 (Revised to add kable styling ref: https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html)
+
 ```{r}
 #| label: pe-3-map-1
+
+surveys |>
+  map_chr(typeof) |>
+  data.frame() |>
+  rownames_to_column() |>
+  setNames(c("variable", "type")) |>
+  pivot_wider(names_from = variable,
+              values_from = type) |>
+  kable() |>
+  kable_styling()
+
+# ref: https://www.geeksforgeeks.org/convert-row-names-into-column-of-dataframe-in-r/
+# ref: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/setNames
 
 ```
 
@@ -942,13 +1210,11 @@ ca_childcare |>
 
 -   Example 1
 
-Lab 4 Question 8
 
 ```{r}
 #| label: dsm-1-1
 
-reg_mod1 <- lm(data = ca_childcare, mc_infant ~ mhi_2018)
-summary(reg_mod1)
+
 
 ```
 
@@ -992,7 +1258,7 @@ summary(species_mod)
 
 <!-- How did you revise your thinking throughout the course? How did you revise your thinking on the code examples you have provided in your portfolio? -->
 
-I revised my thinking by taking careful note of the feedback I received and resubmitting the questions where I had demonstrated a lack of full understanding (as opposed to forgetting a space or newline). For example, in lab 3 I used unnecessary intermediate variables for the min and max values towards the end, and revised those to use a single pipeline. I then applied this change in my future work, and have made an intentional effort not to use any intermediate variables since. In this way, I feel my code quality has steadily increased throughout the assignments, as shown in the code I've provided in the portfolio. 
+I revised my thinking by taking careful note of the feedback I received and resubmitting the questions where I had demonstrated a lack of full understanding (as opposed to forgetting a space or newline). For example, in lab 3 I used unnecessary intermediate variables for the min and max values towards the end, and revised those to use a single pipeline. I then applied this change in my future work, and have made an intentional effort not to use any intermediate variables since. In this way, I feel my code quality has steadily increased throughout the assignments, as shown in the code I've provided in the portfolio.
 
 <!-- For the revisions included in your Portfolio, to help me understand the nature of your revisions, please denote somehow the feedback I provided you (e.g., boldface, italics, colored text) before your revisions. -->
 
@@ -1000,7 +1266,7 @@ I revised my thinking by taking careful note of the feedback I received and resu
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
-I've extended my thinking by taking on the challenge activities, and consistently aiming for above just the bare minimum (not just picking the easiest challenge available). I used code chunks from these challenges for my portfolio, because I feel that the times I challenged myself resulted in better and more sophisticated code than the code in the labs and practice activities. 
+I've extended my thinking by taking on the challenge activities, and consistently aiming for above just the bare minimum (not just picking the easiest challenge available). I used code chunks from these challenges for my portfolio, because I feel that the times I challenged myself resulted in better and more sophisticated code than the code in the labs and practice activities.
 
 ## Peer Support & Collaboration
 

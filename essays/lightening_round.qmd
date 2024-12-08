@@ -6,16 +6,22 @@ editor: visual
 
 **Answer each of the following questions with *one sentence* including a brief explanation.**
 
-1. Finish the sentence with another student’s name: "If [Name of Student] doesn’t earn an A, then nobody should, because..." Explain your choice and your reasoning.
+1.  Finish the sentence with another student’s name: "If **Ryan Chan** doesn’t earn an A, then nobody should, because..." Explain your choice and your reasoning.
 
+Ryan gets his work done on time and has a high understanding of the course material, and he was able to clearly explain pivot_wider() and pivot_longer() to me when I was confused.
 
-2. What was the most difficult part of the class for you? List a general topic, a specific problem, a kind of work we did, etc. and explain why.
+2.  What was the most difficult part of the class for you? List a general topic, a specific problem, a kind of work we did, etc. and explain why.
 
+The most difficult part of the class for me was the Practice Activities, as they involved a different type of collaboration than I'm familiar with so I had to readjust my approach to pair programming.
 
-3. What was the easiest part of the class for you? Explain why.
+3.  What was the easiest part of the class for you? Explain why.
 
+The easiest part of the class for me was the dplyr pipelines (specifically select, filter, join, group by, mutate), which I'm already familiar with from previous Computer Science classes I've taken.
 
-4. What part of the class surprised or interested you the most? Explain why.
+4.  What part of the class surprised or interested you the most? Explain why.
 
+I was most surprised by how intuitive all of the functions we learned were, and how similar R is to other programming languages I've learned.
 
-5. Give one piece of advice to a student just beginning a quarter of STAT 331 that will help them be successful in learning.
+5.  Give one piece of advice to a student just beginning a quarter of STAT 331 that will help them be successful in learning.
+
+Make a list of everything to submit each week, as there are a lot of assignments and check-ins and it's easy to lose track of pending tasks.
